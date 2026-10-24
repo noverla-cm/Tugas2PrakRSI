@@ -29,6 +29,58 @@
         }
       }
     },
+    "/api/v1/auth/register": {
+      "post": {
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Registrasi berhasil"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Email sudah terdaftar"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Login berhasil dan token diberikan"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Email atau password salah"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil pengguna berhasil diambil"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/v1/users/": {
       "get": {
         "description": "",
@@ -78,31 +130,12 @@
     "/api/v1/stalls/": {
       "get": {
         "description": "",
-        "parameters": [
-          {
-            "name": "search",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "type": "integer"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "type": "integer"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "Daftar warung (filter + pagination)"
+            "description": "Daftar warung"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       },
@@ -110,17 +143,23 @@
         "description": "",
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/StallInput"
-            }
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
           "201": {
             "description": "Warung dibuat"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
         }
       }
@@ -133,15 +172,18 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "integer"
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
             "description": "Detail warung"
           },
+          "400": {
+            "description": "Bad Request"
+          },
           "404": {
-            "description": "Tidak ditemukan"
+            "description": "Warung tidak ditemukan"
           }
         }
       },
@@ -152,20 +194,26 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "integer"
+            "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/StallInput"
-            }
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "Warung ter-update"
+            "description": "Warung diperbarui"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
         }
       },
@@ -176,12 +224,26 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "integer"
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "Warung terhapus"
+            "description": "Warung dihapus"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
         }
       }
