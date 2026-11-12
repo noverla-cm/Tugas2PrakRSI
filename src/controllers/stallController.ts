@@ -1,12 +1,19 @@
 
 import type { Request, Response } from 'express';
 import { StallService } from '../services/stallService.ts';
+import { ReviewService } from '../services/reviewService.ts';
+import { isUniqueViolation } from '../utils/dbErrors.ts';
 
 export class StallController {
   private stallService: StallService;
+  private reviewService: ReviewService;
 
-  constructor(stallService: StallService = new StallService()) {
+  constructor(
+    stallService: StallService = new StallService(),
+    reviewService: ReviewService = new ReviewService(),
+  ) {
     this.stallService = stallService;
+    this.reviewService = reviewService;
   }
 
   private handleError(res: Response, error: unknown): Response {
@@ -23,6 +30,13 @@ export class StallController {
       return res.status(403).json({
         status: 'error',
         message: 'Kamu tidak memiliki izin mengubah warung ini',
+      });
+    }
+
+    if (isUniqueViolation(error)) {
+      return res.status(409).json({
+        status: 'fail',
+        message: 'Kamu sudah pernah mereview warung ini',
       });
     }
 
@@ -122,7 +136,7 @@ export class StallController {
     }
   };
 
-  // Membuat review untuk warung
+  // POST /stalls/:id/reviews — membuat review untuk warung
   createReview = async (req: Request, res: Response): Promise<Response> => {
     try {
       if (!req.authUser) {
@@ -135,11 +149,14 @@ export class StallController {
       const { id } = res.locals.validated.params;
       const input = res.locals.validated.body;
 
-      const review = await this.stallService.createReview(
-        id,
-        req.authUser.userId,
-        input
-      );
+      // Satu jalur pembuatan review: ReviewService (sama dengan POST /reviews),
+      // sehingga validasi dan pembaruan avg_rating/review_count selalu sama.
+      const review = await this.reviewService.createReview({
+        stallId: id,
+        userId: req.authUser.userId,
+        rating: input.rating,
+        comment: input.comment ?? null,
+      });
 
       return res.status(201).json({
         status: 'success',

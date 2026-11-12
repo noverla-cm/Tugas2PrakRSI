@@ -2,6 +2,8 @@
 import { Router } from 'express';
 import { AuditLogController } from '../controllers/auditLogController.ts';
 import { authenticate, authorize } from '../middlewares/auth.ts';
+import { validate } from '../middlewares/validate.ts';
+import { createAuditLogSchema } from '../dtos/auditLogDto.ts';
 
 const auditLogRouter = Router();
 const auditLogController = new AuditLogController();
@@ -29,10 +31,11 @@ auditLogRouter.post(
   '/',
   authenticate,
   authorize('admin'),
+  validate(createAuditLogSchema, 'body'),
   (req, res) => {
     // #swagger.tags = ['Audit Logs']
     // #swagger.summary = 'Membuat audit log'
-    // #swagger.description = 'Hanya admin yang dapat membuat audit log melalui endpoint ini.'
+    // #swagger.description = 'Hanya admin yang dapat membuat audit log. Pelaku dicatat otomatis dari token JWT admin yang login.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.consumes = ['application/json']
     // #swagger.parameters['body'] = {

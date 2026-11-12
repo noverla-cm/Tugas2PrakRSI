@@ -9,7 +9,8 @@
     "prestart": "npm run docs:gen",
     "dev": "tsx watch src/index.ts",
     "predev": "npm run docs:gen",
-    "docs:gen": "tsx src/docs/swagger.ts && tsx src/docs/addAuthDocs.ts"
+    "docs:gen": "tsx src/docs/swagger.ts && tsx src/docs/addAuthDocs.ts",
+    "seed:passwords": "tsx src/scripts/setTestPasswords.ts"
   },
   "type": "commonjs",
   "dependencies": {

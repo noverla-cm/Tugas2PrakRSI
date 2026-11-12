@@ -2,6 +2,8 @@
 import { Router } from 'express';
 import { FlagController } from '../controllers/flagController.ts';
 import { authenticate, authorize } from '../middlewares/auth.ts';
+import { validate } from '../middlewares/validate.ts';
+import { flagIdSchema, updateFlagStatusSchema } from '../dtos/flagDto.ts';
 
 const flagRouter = Router();
 const flagController = new FlagController();
@@ -29,6 +31,8 @@ flagRouter.put(
   '/:id',
   authenticate,
   authorize('admin'),
+  validate(flagIdSchema, 'params'),
+  validate(updateFlagStatusSchema, 'body'),
   (req, res) => {
     // #swagger.tags = ['Flags']
     // #swagger.summary = 'Memperbarui status flag'
@@ -47,6 +51,7 @@ flagRouter.put(
     //   schema: { $ref: '#/definitions/FlagStatusInput' }
     // }
     // #swagger.responses[200] = { description: 'Status flag ter-update' }
+    // #swagger.responses[400] = { description: 'ID atau status tidak valid' }
     // #swagger.responses[401] = { description: 'Token tidak valid atau tidak diberikan' }
     // #swagger.responses[403] = { description: 'Hanya admin yang dapat mengakses endpoint ini' }
     // #swagger.responses[404] = { description: 'Flag tidak ditemukan' }

@@ -12,11 +12,6 @@ type StallInput = Omit<CreateStallInput, 'ownerId'>;
 
 type UserRole = 'admin' | 'owner' | 'customer';
 
-type CreateReviewInput = {
-  rating: number;
-  comment?: string | null;
-};
-
 export class StallService {
   constructor(private stallRepository: StallRepository = new StallRepository()) {}
 
@@ -90,28 +85,5 @@ export class StallService {
     if (!row) throw new Error('STALL_NOT_FOUND');
 
     return this.toDto(row);
-  }
-
-  // Membuat review untuk warung
-  async createReview(
-    stallId: number,
-    userId: number,
-    input: CreateReviewInput
-  ) {
-    const stall = await this.stallRepository.findById(stallId);
-
-    if (!stall) {
-      throw new Error('STALL_NOT_FOUND');
-    }
-
-    if (
-      !Number.isInteger(input.rating) ||
-      input.rating < 1 ||
-      input.rating > 5
-    ) {
-      throw new Error('INVALID_REVIEW_RATING');
-    }
-
-    return this.stallRepository.createReview(stallId, userId, input);
   }
 }

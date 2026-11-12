@@ -1,8 +1,12 @@
 import { ReviewRepository, type CreateReviewInput } from '../repositories/reviewRepository.ts';
+import { StallRepository } from '../repositories/stallRepository.ts';
 import type { ReviewResponseDto } from '../dtos/reviewDto.ts';
 
 export class ReviewService {
-  constructor(private reviewRepository: ReviewRepository = new ReviewRepository()) {}
+  constructor(
+    private reviewRepository: ReviewRepository = new ReviewRepository(),
+    private stallRepository: StallRepository = new StallRepository(),
+  ) {}
 
   private toDto(row: any): ReviewResponseDto {
     return {
@@ -24,6 +28,9 @@ export class ReviewService {
   }
 
   async createReview(input: CreateReviewInput): Promise<ReviewResponseDto> {
+    const stall = await this.stallRepository.findById(input.stallId);
+    if (!stall) throw new Error('STALL_NOT_FOUND');
+
     const row = await this.reviewRepository.create(input);
     if (!row) throw new Error('REVIEW_NOT_FOUND');
     return this.toDto(row);

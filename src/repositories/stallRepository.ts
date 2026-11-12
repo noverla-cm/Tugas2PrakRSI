@@ -1,6 +1,6 @@
-import { and, count, eq, like, type SQL } from 'drizzle-orm';
+import { and, count, eq, inArray, like, type SQL } from 'drizzle-orm';
 import { getDb } from '../db/index.ts';
-import { stalls, reviews } from '../db/schema.ts';
+import { stalls, reviews, menuItems, likes, flags } from '../db/schema.ts';
 
 export interface FindAllParams {
   search?: string;
@@ -81,31 +81,34 @@ export class StallRepository {
     return rows[0];
   }
 
+  // Menghapus warung beserta seluruh data terkaitnya dalam SATU transaksi:
+  // likes + flags (milik review warung) -> reviews -> menu_items -> stalls.
+  // Jika salah satu langkah gagal, semuanya di-rollback sehingga data tidak setengah terhapus.
   async remove(id: number) {
     const db = await getDb();
-    const rows = await db.delete(stalls).where(eq(stalls.id, id)).output();
-    return rows[0];
-  }
-  
-  
-  async createReview(
-    stallId: number,
-    userId: number,
-    input: { rating: number; comment?: string | null }
-  ) {
-    const db = await getDb();
 
-    const rows = await db
-      .insert(reviews)
-      .output()
-      .values({
-        stallId,
-        userId,
-        rating: input.rating,
-        comment: input.comment ?? null,
-        likeCount: 0,
-      });
+    return db.transaction(async (tx) => {
+      const existing = await tx.select({ id: stalls.id }).from(stalls).where(eq(stalls.id, id));
+      if (existing.length === 0) return undefined;
 
-    return rows[0];
+      const reviewRows = await tx
+        .select({ id: reviews.id })
+        .from(reviews)
+        .where(eq(reviews.stallId, id));
+      const reviewIds = reviewRows.map((r) => r.id);
+
+      // Dipotong per 500 id agar aman dari batas jumlah parameter SQL Server.
+      for (let i = 0; i < reviewIds.length; i += 500) {
+        const chunk = reviewIds.slice(i, i + 500);
+        await tx.delete(likes).where(inArray(likes.reviewId, chunk));
+        await tx.delete(flags).where(inArray(flags.reviewId, chunk));
+      }
+
+      await tx.delete(reviews).where(eq(reviews.stallId, id));
+      await tx.delete(menuItems).where(eq(menuItems.stallId, id));
+
+      const rows = await tx.delete(stalls).where(eq(stalls.id, id)).output();
+      return rows[0];
+    });
   }
 }

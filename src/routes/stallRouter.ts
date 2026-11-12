@@ -97,7 +97,7 @@ stallRouter.post(
   (req, res) => {
     // #swagger.tags = ['Stalls']
     // #swagger.summary = 'Membuat warung baru'
-    // #swagger.description = 'Hanya admin dan owner yang dapat membuat warung.'
+    // #swagger.description = 'Hanya admin dan owner yang dapat membuat warung. Pemilik (ownerId) diambil otomatis dari token JWT, tidak dikirim di body.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.consumes = ['application/json']
     // #swagger.parameters['body'] = {
@@ -168,7 +168,7 @@ stallRouter.put(
     
     // #swagger.tags = ['Stalls']
     // #swagger.summary = 'Mengubah data warung'
-    // #swagger.description = 'Mengubah data warung berdasarkan ID.'
+    // #swagger.description = 'Mengubah data warung berdasarkan ID (semua field opsional). Admin dapat mengubah semua warung; Owner hanya warung miliknya. Pemilik warung (ownerId) tidak dapat diubah lewat endpoint ini.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.parameters['id'] = {
     //   in: 'path',
@@ -184,9 +184,11 @@ stallRouter.put(
     //   schema: {
     //     type: 'object',
     //     properties: {
-    //       name: { type: 'string', example: 'Diubah owner2' }
-    //     },
-    //     required: ['name']
+    //       name: { type: 'string', example: 'Diubah owner2' },
+    //       category: { type: 'string', example: 'Nasi' },
+    //       location: { type: 'string', example: 'Kantin FK' },
+    //       description: { type: 'string', example: 'Deskripsi baru' }
+    //     }
     //   }
     // }
     // #swagger.responses[200] = { description: 'Warung berhasil diubah' }

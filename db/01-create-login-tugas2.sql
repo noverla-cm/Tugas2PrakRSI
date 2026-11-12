@@ -1,12 +1,14 @@
 -- Login KHUSUS untuk Tugas 2 (beda dari praktikum_user di hands-on),
 -- supaya kredensial tugas & praktikum tidak tercampur.
+-- PENTING: ganti GANTI_DENGAN_PASSWORD_KUAT dengan password Anda sendiri sebelum menjalankan,
+-- lalu isi password yang sama di DB_PASSWORD pada file .env (jangan commit password asli).
 USE master;
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'verla')
 BEGIN
     CREATE LOGIN verla
-        WITH PASSWORD = N'Verla_Tugas2026!',
+        WITH PASSWORD = N'GANTI_DENGAN_PASSWORD_KUAT',
              DEFAULT_DATABASE = review_kantin;
 END
 GO

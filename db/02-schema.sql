@@ -1,6 +1,15 @@
 USE review_kantin;
 GO
 
+-- CATATAN RELASI FOREIGN KEY
+-- ON DELETE CASCADE dipakai pada relasi data turunan, sehingga menghapus induknya ikut
+-- menghapus anaknya:  STALLS -> MENU_ITEMS, STALLS -> REVIEWS, REVIEWS -> LIKES, REVIEWS -> FLAGS.
+-- Relasi ke USERS sengaja TIDAK cascade (menghapus pengguna tidak boleh diam-diam menghapus
+-- warung/review, dan SQL Server menolak "multiple cascade paths").
+-- Skrip ini hanya membuat tabel yang BELUM ada. Bila tabel sudah ada dari praktikum
+-- sebelumnya, jalankan db/04-migrasi-cascade.sql untuk menyesuaikan foreign key-nya.
+GO
+
 -- ---------------------------------------------------------------- USERS
 IF OBJECT_ID('dbo.USERS', 'U') IS NULL
 BEGIN

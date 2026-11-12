@@ -35,10 +35,11 @@ app.get('/health', async (req: Request, res: Response) => {
       message: 'Server dan database terhubung',
     });
   } catch (error) {
+    // Detail error hanya di log server, tidak dikirim ke klien.
+    console.error(error);
     res.status(500).json({
       status: 'error',
       message: 'Gagal terhubung ke database',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });

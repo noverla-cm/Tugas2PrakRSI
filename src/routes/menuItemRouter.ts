@@ -2,6 +2,12 @@
 import { Router } from 'express';
 import { MenuItemController } from '../controllers/menuItemController.ts';
 import { authenticate, authorize } from '../middlewares/auth.ts';
+import { validate } from '../middlewares/validate.ts';
+import {
+  menuItemIdSchema,
+  createMenuItemSchema,
+  updateMenuItemSchema,
+} from '../dtos/menuItemDto.ts';
 
 const menuItemRouter = Router();
 const menuItemController = new MenuItemController();
@@ -21,10 +27,11 @@ menuItemRouter.post(
   '/',
   authenticate,
   authorize('owner', 'admin'),
+  validate(createMenuItemSchema, 'body'),
   (req, res) => {
     // #swagger.tags = ['Menu Items']
     // #swagger.summary = 'Membuat menu baru'
-    // #swagger.description = 'Hanya owner dan admin yang dapat membuat menu.'
+    // #swagger.description = 'Admin dapat membuat menu di semua warung; Owner hanya di warung miliknya.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.consumes = ['application/json']
     // #swagger.parameters['body'] = {
@@ -35,14 +42,15 @@ menuItemRouter.post(
     // }
     // #swagger.responses[201] = { description: 'Menu item dibuat' }
     // #swagger.responses[401] = { description: 'Token tidak valid atau tidak diberikan' }
-    // #swagger.responses[403] = { description: 'Role tidak memiliki izin' }
+    // #swagger.responses[403] = { description: 'Role tidak memiliki izin / bukan warung miliknya' }
+    // #swagger.responses[404] = { description: 'Warung tidak ditemukan' }
 
     return menuItemController.createMenuItem(req, res);
   }
 );
 
 // GET /menu-items/:id — publik, tidak perlu login
-menuItemRouter.get('/:id', (req, res) => {
+menuItemRouter.get('/:id', validate(menuItemIdSchema, 'params'), (req, res) => {
   // #swagger.tags = ['Menu Items']
   // #swagger.summary = 'Melihat detail menu'
   // #swagger.parameters['id'] = {
@@ -60,9 +68,12 @@ menuItemRouter.put(
   '/:id',
   authenticate,
   authorize('owner', 'admin'),
+  validate(menuItemIdSchema, 'params'),
+  validate(updateMenuItemSchema, 'body'),
   (req, res) => {
     // #swagger.tags = ['Menu Items']
     // #swagger.summary = 'Memperbarui menu'
+    // #swagger.description = 'Admin dapat mengubah semua menu; Owner hanya menu di warung miliknya.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.parameters['id'] = {
     //   in: 'path',
@@ -78,8 +89,8 @@ menuItemRouter.put(
     // }
     // #swagger.responses[200] = { description: 'Menu berhasil diperbarui' }
     // #swagger.responses[401] = { description: 'Token tidak valid atau tidak diberikan' }
-    // #swagger.responses[403] = { description: 'Role tidak memiliki izin' }
-    // #swagger.responses[404] = { description: 'Menu tidak ditemukan' }
+    // #swagger.responses[403] = { description: 'Role tidak memiliki izin / bukan menu warung miliknya' }
+    // #swagger.responses[404] = { description: 'Menu atau warung tidak ditemukan' }
 
     return menuItemController.updateMenuItem(req, res);
   }
@@ -90,9 +101,11 @@ menuItemRouter.delete(
   '/:id',
   authenticate,
   authorize('owner', 'admin'),
+  validate(menuItemIdSchema, 'params'),
   (req, res) => {
     // #swagger.tags = ['Menu Items']
     // #swagger.summary = 'Menghapus menu'
+    // #swagger.description = 'Admin dapat menghapus semua menu; Owner hanya menu di warung miliknya.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.parameters['id'] = {
     //   in: 'path',
@@ -102,7 +115,7 @@ menuItemRouter.delete(
     // }
     // #swagger.responses[200] = { description: 'Menu berhasil dihapus' }
     // #swagger.responses[401] = { description: 'Token tidak valid atau tidak diberikan' }
-    // #swagger.responses[403] = { description: 'Role tidak memiliki izin' }
+    // #swagger.responses[403] = { description: 'Role tidak memiliki izin / bukan menu warung miliknya' }
     // #swagger.responses[404] = { description: 'Menu tidak ditemukan' }
 
     return menuItemController.deleteMenuItem(req, res);

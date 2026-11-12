@@ -3,7 +3,8 @@ import { Router } from 'express';
 import { ReviewController } from '../controllers/reviewController.ts';
 import { authenticate, authorize } from '../middlewares/auth.ts';
 import { validate } from '../middlewares/validate.ts';
-import { listReviewsSchema } from '../dtos/reviewDto.ts';
+import { listReviewsSchema, createReviewBodySchema } from '../dtos/reviewDto.ts';
+import { idParamSchema } from '../dtos/likeDto.ts';
 
 const reviewRouter = Router();
 const reviewController = new ReviewController();
@@ -38,10 +39,11 @@ reviewRouter.get(
 reviewRouter.post(
   '/',
   authenticate,
+  validate(createReviewBodySchema, 'body'),
   (req, res) => {
     // #swagger.tags = ['Reviews']
     // #swagger.summary = 'Membuat review'
-    // #swagger.description = 'Semua pengguna yang sudah login dapat membuat review.'
+    // #swagger.description = 'Semua pengguna yang sudah login dapat membuat review. Identitas pengguna diambil dari token JWT.'
     // #swagger.security = [{ "BearerAuth": [] }]
     // #swagger.consumes = ['application/json']
     // #swagger.parameters['body'] = {
@@ -53,6 +55,8 @@ reviewRouter.post(
     // #swagger.responses[201] = { description: 'Review dibuat' }
     // #swagger.responses[400] = { description: 'Data review tidak valid' }
     // #swagger.responses[401] = { description: 'Token tidak valid atau tidak diberikan' }
+    // #swagger.responses[404] = { description: 'Warung tidak ditemukan' }
+    // #swagger.responses[409] = { description: 'Pengguna sudah mereview warung ini' }
 
     return reviewController.createReview(req, res);
   }
@@ -63,6 +67,7 @@ reviewRouter.delete(
   '/:id',
   authenticate,
   authorize('admin'),
+  validate(idParamSchema, 'params'),
   (req, res) => {
     // #swagger.tags = ['Reviews']
     // #swagger.summary = 'Menghapus review'

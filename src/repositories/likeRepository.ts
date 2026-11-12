@@ -14,6 +14,12 @@ export class LikeRepository {
     return rows[0];
   }
 
+  async findById(id: number) {
+    const db = await getDb();
+    const rows = await db.select().from(likes).where(eq(likes.id, id));
+    return rows[0];
+  }
+
   async remove(id: number) {
     const db = await getDb();
     const rows = await db.delete(likes).where(eq(likes.id, id)).output();

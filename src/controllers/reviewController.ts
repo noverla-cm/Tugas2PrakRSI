@@ -1,6 +1,7 @@
 
 import type { Request, Response } from 'express';
 import { ReviewService } from '../services/reviewService.ts';
+import { isUniqueViolation } from '../utils/dbErrors.ts';
 
 export class ReviewController {
   constructor(private reviewService: ReviewService = new ReviewService()) {}
@@ -13,45 +14,33 @@ export class ReviewController {
       });
     }
 
+    if (error instanceof Error && error.message === 'STALL_NOT_FOUND') {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Data warung tidak ditemukan',
+      });
+    }
+
+    if (isUniqueViolation(error)) {
+      return res.status(409).json({
+        status: 'fail',
+        message: 'Kamu sudah pernah mereview warung ini',
+      });
+    }
+
+    console.error(error);
+
     return res.status(500).json({
       status: 'error',
       message: 'Terjadi kesalahan pada server',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 
   // GET /reviews — publik, dengan filter stallId opsional
+  // Query sudah divalidasi oleh middleware validate(listReviewsSchema, 'query').
   getReviews = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const rawStallId = req.query.stallId;
-      let stallId: number | undefined;
-
-      // Validasi hanya dilakukan jika stallId dikirim
-      if (rawStallId !== undefined) {
-        if (
-          typeof rawStallId !== 'string' ||
-          rawStallId.trim() === ''
-        ) {
-          return res.status(400).json({
-            status: 'fail',
-            message: 'stallId harus berupa bilangan bulat positif',
-          });
-        }
-
-        const parsedStallId = Number(rawStallId);
-
-        if (
-          !Number.isInteger(parsedStallId) ||
-          parsedStallId <= 0
-        ) {
-          return res.status(400).json({
-            status: 'fail',
-            message: 'stallId harus berupa bilangan bulat positif',
-          });
-        }
-
-        stallId = parsedStallId;
-      }
+      const { stallId } = res.locals.validated.query as { stallId?: number };
 
       const reviews = await this.reviewService.getAllReviews(stallId);
 
@@ -67,7 +56,22 @@ export class ReviewController {
   // POST /reviews — pengguna yang sudah login
   createReview = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const review = await this.reviewService.createReview(req.body);
+      if (!req.authUser) {
+        return res.status(401).json({
+          status: 'error',
+          message: 'Autentikasi diperlukan',
+        });
+      }
+
+      // userId diambil dari JWT, bukan dari body request.
+      const { stallId, rating, comment } = res.locals.validated.body;
+
+      const review = await this.reviewService.createReview({
+        stallId,
+        rating,
+        comment: comment ?? null,
+        userId: req.authUser.userId,
+      });
 
       return res.status(201).json({
         status: 'success',
@@ -81,9 +85,8 @@ export class ReviewController {
   // DELETE /reviews/:id — admin
   deleteReview = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const review = await this.reviewService.deleteReview(
-        Number(req.params.id),
-      );
+      const { id } = res.locals.validated.params;
+      const review = await this.reviewService.deleteReview(id);
 
       return res.status(200).json({
         status: 'success',

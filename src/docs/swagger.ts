@@ -35,7 +35,6 @@ const doc = {
       $role: 'customer',
     },
     StallInput: {
-      $ownerId: 2,
       $name: 'Warung Baru',
       category: 'Nasi',
       location: 'Kantin FK',
@@ -49,19 +48,16 @@ const doc = {
     },
     ReviewInput: {
       $stallId: 1,
-      $userId: 12,
       $rating: 5,
       comment: 'Enak banget',
     },
     LikeInput: {
       $reviewId: 1,
-      $userId: 13,
     },
     FlagStatusInput: {
       $status: 'resolved',
     },
     AuditLogInput: {
-      $userId: 1,
       $action: 'CREATE',
       $targetTable: 'STALLS',
       $targetId: 1,

@@ -8,10 +8,10 @@ export class FlagController {
     if (error instanceof Error && error.message === 'FLAG_NOT_FOUND') {
       return res.status(404).json({ status: 'fail', message: 'Flag tidak ditemukan' });
     }
+    console.error(error);
     return res.status(500).json({
       status: 'error',
       message: 'Terjadi kesalahan pada server',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 
@@ -26,7 +26,10 @@ export class FlagController {
 
   updateFlagStatus = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const flag = await this.flagService.updateFlagStatus(Number(req.params.id), req.body.status);
+      // id dan status sudah divalidasi oleh middleware validate() di router.
+      const { id } = res.locals.validated.params;
+      const { status } = res.locals.validated.body;
+      const flag = await this.flagService.updateFlagStatus(id, status);
       return res.status(200).json({ status: 'success', data: flag });
     } catch (error) {
       return this.handleError(res, error);

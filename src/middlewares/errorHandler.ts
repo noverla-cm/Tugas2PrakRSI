@@ -15,16 +15,10 @@ export function errorHandler(
     return next(error);
   }
 
-  // Error validasi Zod akan ditangani di middleware validasi.
-  // Di sini kita menangani error umum yang belum ditangani.
-  const message =
-    error instanceof Error
-      ? error.message
-      : 'Terjadi kesalahan pada server';
-
+  // Detail error (pesan, stack, info database) hanya dicatat di log server di atas
+  // dan tidak pernah dikirim ke klien.
   return res.status(500).json({
     status: 'error',
     message: 'Terjadi kesalahan internal pada server',
-    detail: message
   });
 }

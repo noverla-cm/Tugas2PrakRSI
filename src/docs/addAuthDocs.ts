@@ -118,7 +118,7 @@ if (swagger.paths[stallsPostPath]?.post) {
       name: 'body',
       in: 'body',
       required: true,
-      description: 'Data warung yang akan dibuat',
+      description: 'Data warung yang akan dibuat. ownerId tidak dikirim: diambil dari token JWT.',
       schema: {
         $ref: '#/definitions/StallInput',
       },
@@ -154,7 +154,7 @@ if (swagger.paths[stallsPutPath]?.put) {
       name: 'body',
       in: 'body',
       required: true,
-      description: 'Data warung yang akan diubah',
+      description: 'Data warung yang akan diubah (semua field opsional)',
       schema: {
         type: 'object',
         properties: {
@@ -162,8 +162,19 @@ if (swagger.paths[stallsPutPath]?.put) {
             type: 'string',
             example: 'Diubah owner2',
           },
+          category: {
+            type: 'string',
+            example: 'Nasi',
+          },
+          location: {
+            type: 'string',
+            example: 'Kantin FK',
+          },
+          description: {
+            type: 'string',
+            example: 'Deskripsi baru',
+          },
         },
-        required: ['name'],
       },
     },
   ];
